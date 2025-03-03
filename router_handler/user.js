@@ -70,24 +70,20 @@ const login=(req,res)=>{
 
 
 function getUserInfo(req,res){
-    const sql='select id,username,nickname,email from user_info where id=?'
+    const sql='select id,username,name,email,sex,address,phone from user_info where id=?'
     db.query(sql,req.auth.id,(err,results)=>{
-        if(err) return res.cc(err)
-        if(results.length!=1)return res.cc('获取用户信息事变')
-        res.send({
-            status:0,
-            message:'获取成功',
-            data:results[0]
-        })
+        if(err) return res.sendRes(0,err)
+        if(results.length!=1)return res.sendRes(0,'获取用户信息失败')
+        res.sendRes(1,'获取成功',results[0])
     })
    
 }
 const updateUser=(req,res)=>{
-    const sql="update user_info set ? where id=?"
-    db.query(sql,[req.body,req.body.id],(err,results)=>{
-        if(err)return res.cc(err)
-        if(results.affectedRows!==1) return res.cc('更新用户的基本信息失败')
-        res.cc('更新用户信息成功',0)
+    const sql="update user_info set name=? , sex=? ,email=? ,phone=?, address=? where id=?"
+    db.query(sql,[req.body.name,req.body.sex,req.body.email,req.body.phone,req.body.address,req.auth.id],(err,results)=>{
+        if(err)return res.sendRes(0,err)
+        if(results.affectedRows!==1) return res.sendRes(0,'更新用户的基本信息失败,检查id是否正确')
+        res.sendRes(1,'更新用户信息成功')
     })
 
 }
@@ -97,51 +93,50 @@ const updatePwd=(req,res)=>{
     const sql='select * from user_info where id=?'
     db.query(sql,req.auth.id,(err,results)=>{
         // 如果查询出错，返回错误信息
-        if(err)return res.cc(err)
+        if(err)return res.sendRes(0,err)
         // 如果查询结果不为1，返回用户不存在的错误信息
-        if(results.length!=1) return res.cc('用户不存在')
+        if(results.length!=1) return res.sendRes(0,'用户不存在')
         // 如果旧密码与数据库中的密码匹配
-        if(bcryptjs.compareSync(req.body.oldPwd,results[0].password))
+        if(req.body.oldPwd==results[0].password||bcryptjs.compareSync(req.body.oldPwd,results[0].password))
         {
             // 更新用户表中id为req.auth.id的记录的密码为新密码
             const sql2='update user_info set password=? where id=?'
             db.query(sql2,[bcryptjs.hashSync(req.body.newPwd,10),req.auth.id],(err,resultss)=>{
                 // 如果更新出错，返回错误信息
-                if(err) return req.cc(err)
-                // 打印更新结果
-                    console.log(resultss)
+                if(err) return req.sendRes(0,err)
+                // // 打印更新结果
+                //     console.log(resultss)
                 // 如果更新结果受影响的行数小于1，返回更新失败的信息
-                if(resultss.affectedRows<1) return res.cc('更新失败')
+                if(resultss.affectedRows<1) return res.sendRes(0,'更新失败')
                 // 返回更新成功的信息
-                res.cc('更新成功',0)
+                res.sendRes(1,'更新成功')
             })
         }
         // 如果旧密码与数据库中的密码不匹配，返回旧密码错误的错误信息
         else
-        res.cc('旧密码错误')
+        res.sendRes(0,'旧密码错误,请重试')
     })
 }
 // 更新用户头像
-const updateAvatar=(req,res)=>{
-    // 定义更新用户头像的SQL语句
-    const sql="update user_info set avator=? where id=?"
-    // 执行SQL语句，更新用户头像
-    db.query(sql,[req.body.avatar,req.auth.id],(err,results)=>{
-        // 如果执行SQL语句出错，返回错误信息
-        if(err)return res.cc(err)
-        // 如果更新用户头像失败，返回错误信息
-        if(results.affectedRows!=1)return res.cc('更换头像失败')
-        // 如果更新用户头像成功，返回成功信息
-        // res.cc('更新成功',0)
-    })
+// const updateAvatar=(req,res)=>{
+//     // 定义更新用户头像的SQL语句
+//     const sql="update user_info set avator=? where id=?"
+//     // 执行SQL语句，更新用户头像
+//     db.query(sql,[req.body.avatar,req.auth.id],(err,results)=>{
+//         // 如果执行SQL语句出错，返回错误信息
+//         if(err)return res.cc(err)
+//         // 如果更新用户头像失败，返回错误信息
+//         if(results.affectedRows!=1)return res.cc('更换头像失败')
+//         // 如果更新用户头像成功，返回成功信息
+//         // res.cc('更新成功',0)
+//     })
 
-}
+// }
 
 module.exports={
     createUser,
     getUserInfo,
     updateUser,
     updatePwd,
-    updateAvatar,
     login,
 }

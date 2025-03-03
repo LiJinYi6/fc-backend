@@ -20,6 +20,6 @@ router.get('/getUserinfo',userHandler.getUserInfo)
 //表单校验中间件（expressJoi）
 router.post('/updateUser',expressJoi(update_user_schema),userHandler.updateUser)
 router.post('/updatePwd',expressJoi(update_pwd_schema),userHandler.updatePwd)
-router.post('/updateAvatar',expressJoi(update_avatar_schema),userHandler.updateAvatar)
+// router.post('/updateAvatar',expressJoi(update_avatar_schema),userHandler.updateAvatar)
 
 module.exports=router

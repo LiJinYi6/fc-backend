@@ -20,11 +20,11 @@ const storage = multer.diskStorage({
 // 使用multer中间件，设置存储方式为storage，文件大小限制为1000000字节，文件过滤器为checkFileType，只接受一个名为file的文件
 exports.upload = multer({
   storage: storage,
-  limits:{fileSize: 1000000},
+  limits:{fileSize: 1024*1024*5,files:5},
   fileFilter: function(req, file, cb){
     checkFileType(file, cb);
   }
-}).single('file');
+});
 
 // 检查文件类型
 function checkFileType(file, cb){

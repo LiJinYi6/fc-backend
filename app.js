@@ -13,8 +13,27 @@ app.use(express.static('./public'))
 const morgan = require('morgan');
 const path = require('path');
 //swagger
-// const swaggerUi = require('swagger-ui-express');
-// const swaggerDocument = require('./swagger.json');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const options = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'Express API with Swagger',
+        version: '1.0.0',
+        description: 'This is a sample API',
+      },
+      servers: [
+        {
+          url: 'http://localhost:80',
+        },
+      ],
+    },
+    apis: [`./router/*.js`], // 传入你的路由文件
+  };
+  
+const specs = swaggerJsdoc(options);
+
 //解码
 const jwt = require('jsonwebtoken');
 //数据库
@@ -40,15 +59,6 @@ app.use(express.json())
 
   
 
-//JWT令牌认证
-const expressJwt=require('express-jwt')
-//定义一个解析token的中间件
-const config=require('./config')
-app.use(
-    expressJwt.expressjwt
-    ({secret:config.jwtSecretKey,algorithms:['HS256']})
-    .unless({path:['/user/login']})
-)
 
 //权限验证
 exports.checkRole = (role) => {
@@ -89,6 +99,16 @@ const userRouter=require('./router/user')
 const eye_imgRouter=require('./router/eye_img')
 app.use('/user',userRouter)
 app.use('/eyeImg',eye_imgRouter)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+//JWT令牌认证
+const expressJwt=require('express-jwt')
+//定义一个解析token的中间件
+const config=require('./config')
+app.use(
+    expressJwt.expressjwt
+    ({secret:config.jwtSecretKey,algorithms:['HS256']})
+    .unless({path:['/user/login','/api-docs']})
+)
 
 //定义错误级别的中间件
 app.use((err,req,res,next)=>{

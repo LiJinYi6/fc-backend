@@ -45,8 +45,6 @@ const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'),
 // 使用morgan中间件，将日志信息写入文件
 app.use(morgan('combined', { stream: accessLogStream }));
 
-//配置api文档
-// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 //配置跨域
 app.use(cors())
@@ -76,29 +74,32 @@ exports.checkRole = (role) => {
       next();
     };
 };
-
-
-
-
-
-
 //对于send的封装中间件
 app.use((req,res,next)=>{
-    res.sendRes=(ok, message, data) => {
-        res.send({
-          ok,
-          data,
-          message
-        });
-      };
-    next()
+  const token=req.headers.authorization
+  res.sendRes=(ok, message, data) => {
+    res.send({
+      ok,
+      data,
+      message
+    });
+  }; 
+  jwt.verify(token.replace('Bearer ',''),config.jwtSecretKey,(err,decode)=>{
+      if(err) return res.sendRes(0,err.toString())
+      req.auth=decode
+  })
+  next()
 })
+
+
 
 //导入注册路由模块
 const userRouter=require('./router/user')
 const eye_imgRouter=require('./router/eye_img')
+const patientRouter=require('./router/patient')
 app.use('/user',userRouter)
 app.use('/eyeImg',eye_imgRouter)
+app.use('/patient',patientRouter)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 //JWT令牌认证
 const expressJwt=require('express-jwt')
@@ -136,7 +137,7 @@ app.use((err,req,res,next)=>{
         return res.status(403).json({ error: '禁止访问' });
     }
     // 其他错误
-    return res.status(500).json({ error: '未知错误' });
+    return res.status(500).json({ error: err.toString() });
 })
 app.listen(80,()=>{
     console.log('sever running at http://127.0.0.1:80')

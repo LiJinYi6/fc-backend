@@ -7,7 +7,7 @@ const {img_deleteDuzon_schema, img_delete_schema,img_upload_schema}=require('../
 
 /**
  * @swagger
- * /uploadImg:
+ * /eyeImg/uploadImg:
  *   post:
  *     summary: 上传图片
  *     description: 上传单个图片
@@ -29,7 +29,7 @@ router.post('/uploadImg', upload.single('file'), imgHandle.uploadH);
 
 /**
  * @swagger
- * /uploadDuzenImg:
+ * /eyeImg/uploadDuzenImg:
  *   post:
  *     summary: 批量上传图片
  *     description: 批量上传多个图片
@@ -53,7 +53,7 @@ router.post('/uploadDuzenImg', upload.array('files', 12), imgHandle.uploadDuzenH
 
 /**
  * @swagger
- * /getImg:
+ * /eyeImg/getImg:
  *   get:
  *     summary: 获取图片
  *     description: 获取所有图片
@@ -67,7 +67,7 @@ router.get('/getImg', imgHandle.getImgH);
 
 /**
  * @swagger
- * /api/deleteImg:
+ * /eyeImg/deleteImg:
  *   delete:
  *     summary: 删除图片
  *     description: 删除指定图片
@@ -99,7 +99,7 @@ router.delete('/deleteImg', expressJoi(img_delete_schema), imgHandle.deleteImgH)
 
 /**
  * @swagger
- * /api/deleteDuzenImg:
+ * /eyeImg/deleteDuzenImg:
  *   delete:
  *     summary: 批量删除图片
  *     description: 批量删除指定图片

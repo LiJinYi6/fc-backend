@@ -11,7 +11,7 @@
  Target Server Version : 80037
  File Encoding         : 65001
 
- Date: 02/03/2025 22:00:45
+ Date: 03/03/2025 21:29:58
 */
 
 SET NAMES utf8mb4;
@@ -36,7 +36,6 @@ CREATE TABLE `chart_gallery`  (
 -- ----------------------------
 -- Records of chart_gallery
 -- ----------------------------
-INSERT INTO `chart_gallery` VALUES ('10e80898-b7f5-4c41-9c03-b1216d9595c0', NULL, 'dd', 'file-1740914512410.jpg');
 INSERT INTO `chart_gallery` VALUES ('2001', '1001', '1', 'http://example.com/img1.jpg');
 INSERT INTO `chart_gallery` VALUES ('2002', '1002', '2', 'http://example.com/img2.jpg');
 INSERT INTO `chart_gallery` VALUES ('2003', '1003', '3', 'http://example.com/img3.jpg');
@@ -47,8 +46,9 @@ INSERT INTO `chart_gallery` VALUES ('2007', '1007', '7', 'http://example.com/img
 INSERT INTO `chart_gallery` VALUES ('2008', '1008', '8', 'http://example.com/img8.jpg');
 INSERT INTO `chart_gallery` VALUES ('2009', '1009', '9', 'http://example.com/img9.jpg');
 INSERT INTO `chart_gallery` VALUES ('2010', '1010', '10', 'http://example.com/img10.jpg');
-INSERT INTO `chart_gallery` VALUES ('3f2e1b93-ba5f-41ef-8b30-c5bcdb3b1474', NULL, 'dd', 'file-1740914493571.jpg');
-INSERT INTO `chart_gallery` VALUES ('dec6868c-f8d2-430c-8f15-68f4c19f5976', NULL, 'dd', 'file-1740914454638.jpg');
+INSERT INTO `chart_gallery` VALUES ('4b2a3f17-cfd1-4437-b0fe-053819b6c4b5', NULL, 'dd', 'files-1741004787584.jpg');
+INSERT INTO `chart_gallery` VALUES ('6261b3da-7a0b-41d4-a9f7-36d6d1e6e0cf', NULL, 'dd', 'file-1741004617274.jpg');
+INSERT INTO `chart_gallery` VALUES ('e61be800-8c00-46d4-95fe-cbbe394a91d4', NULL, 'dd', 'files-1741004787584.jpg');
 
 -- ----------------------------
 -- Table structure for patient_user
@@ -121,8 +121,7 @@ INSERT INTO `user_info` VALUES ('郑十一', 'zhengshiyi', '123456', '9', 0, '13
 INSERT INTO `user_info` VALUES ('doctor1', 'doctor1', '$2a$10$O63.PyNY3Ie3dzLFfHtXoeaJRAluFvGqLqfDIt74Cg6AQ.giFSvMi', '9daae5b5-693d-4e79-9e9c-c6288bcde115', 0, NULL, NULL, NULL, NULL);
 INSERT INTO `user_info` VALUES ('tes3', 'test3', '$2a$10$nAj0ZzuRDXjJy./iSB6hquzzQJBpgW/t7OYvkc9GWY.KtWpX6RIIm', '9ec1065b-92c2-4838-9d8d-bdc6ab09566e', 0, NULL, NULL, NULL, NULL);
 INSERT INTO `user_info` VALUES ('tes3', 'test5', '$2a$10$Ce5GQbqeOQwCWhgmprs1feeYoZ.n8oWRiLZ3gq5g7fY6QMz6ZkFNG', 'bdf75edc-0413-4375-8d1b-17585003d45a', 0, NULL, NULL, NULL, NULL);
-INSERT INTO `user_info` VALUES ('admin', 'admin', 'a123456', 'dd', 1, NULL, NULL, NULL, NULL);
+INSERT INTO `user_info` VALUES ('李', 'admin', '$2a$10$Nsml2quk8LjpfBf3Y2D1PuBOT1Pv.MgVGDZFPwlpBc/5xJqya4vTW', 'dd', 1, '13874670511', '343400@qq.com', '长沙市', 0);
 INSERT INTO `user_info` VALUES ('tes2', 'test2', '$2a$10$H3NuNaK6B.0yEo/tFbPkquM6yAB1PzPQyZ8htLKPmLnVGgwM3K3b2', 'e657809e-c998-4dd1-a532-f1c8fc87aa4d', 0, NULL, NULL, NULL, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
-

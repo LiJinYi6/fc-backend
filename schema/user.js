@@ -49,23 +49,3 @@ exports.update_pwd_schema={
         newPwd:joi.not(joi.ref('oldPwd')).concat(password)
     }
 }
-// exports.update_user_schema={
-//     body:{
-//         id,
-//         name,
-//         email,
-//         phone,
-//         sex,
-//     }
-// }
-// exports.update_pwd_schema={
-//     body:{
-//         oldPwd:password,
-//         newPwd:joi.not(joi.ref('oldPwd')).concat(password)
-//     }
-// }
-// exports.update_avatar_schema={
-//     body:{
-//         avatar:joi.string().dataUri().required()
-//     }
-// }

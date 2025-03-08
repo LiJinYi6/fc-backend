@@ -1,25 +1,31 @@
 /*==============================================================*/
 /* DBMS name:      MySQL 5.0                                    */
-/* Created on:     2025/3/2 10:46:10                            */
+/* Created on:     2025/3/8 12:15:10                            */
 /*==============================================================*/
 
 
-drop table if exists chart_gallery;
+drop table if exists medical_record;
 
 drop table if exists patient_user;
 
 drop table if exists user_info;
 
 /*==============================================================*/
-/* Table: chart_gallery                                         */
+/* Table: medical_record                                        */
 /*==============================================================*/
-create table chart_gallery
+create table medical_record
 (
-   img_id               varchar(50) not null,
+   result               varchar(5000),
+   advice               varchar(5000),
+   cost                 varchar(50),
+   record_time          varchar(32),
+   cure_state           varchar(32),
+   record_id            varchar(50) not null,
    patient_id           varchar(50),
-   id                   varchar(50),
-   img_url              varchar(500) not null,
-   primary key (img_id)
+   check_items          varchar(32),
+   left_eye             varchar(100),
+   right_eye            varchar(100),
+   primary key (record_id)
 );
 
 /*==============================================================*/
@@ -28,16 +34,12 @@ create table chart_gallery
 create table patient_user
 (
    patient_id           varchar(50) not null,
-   id                   varchar(50) not null,
-   patient_name         varchar(20) not null,
+   id                   varchar(50),
+   patient_name         varchar(20),
    patient_phone        char(11),
-   patient_address      varchar(50) not null,
-   patient_sex          smallint not null,
-   patient_age          smallint not null,
-   curestate            varchar(25),
-   result               varchar(25),
-   cureadvice           varchar(1000),
-   cost                 varchar(50),
+   patient_address      varchar(50),
+   patient_sex          smallint,
+   patient_age          numeric(8,0),
    primary key (patient_id)
 );
 
@@ -58,12 +60,9 @@ create table user_info
    primary key (id)
 );
 
-alter table chart_gallery add constraint FK_Relationship_3 foreign key (patient_id)
+alter table medical_record add constraint FK_Relationship_7 foreign key (patient_id)
       references patient_user (patient_id) on delete restrict on update restrict;
 
-alter table chart_gallery add constraint FK_Relationship_4 foreign key (id)
-      references user_info (id) on delete restrict on update restrict;
-
-alter table patient_user add constraint FK_Relationship_2 foreign key (id)
+alter table patient_user add constraint FK_Relationship_8 foreign key (id)
       references user_info (id) on delete restrict on update restrict;
 

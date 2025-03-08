@@ -1,18 +1,62 @@
 const db= require('../db/index');
 const {v4:uuidv4}=require('uuid');
+const { updatePatientSchema } = require('../schema/patient');
 
 const addPatientH=(req,res)=>{
     let id=req.auth.id
-    const {patient_name,patient_address,patient_sex,patient_age}=req.body;
+    const {patient_name,patient_address,patient_sex,patient_age,patient_phone}=req.body;
     const patient_id=uuidv4();
-    const sql=`insert into patient_user (id,patient_id,patient_name,patient_address,patient_sex,patient_age) values (?,?,?,?,?,?)`;
-    db.query(sql,[id,patient_id,patient_name,patient_address,patient_sex,patient_age],(err,results)=>{
+    const sql=`insert into patient_user (id,patient_id,patient_name,patient_address,patient_sex,patient_age,patient_phone) values (?,?,?,?,?,?,?)`;
+    db.query(sql,[id,patient_id,patient_name,patient_address,patient_sex,patient_age,patient_phone],(err,results)=>{
         if(err) return res.sendRes(0,err.toString());
         if(results.affectedRows!==1) return res.sendRes(0,'添加失败');
         res.sendRes(1,'添加成功')
     })
 }
+const deletePatientH=(req,res)=>{
+    const patient_id=req.params.patient_id;
+    const id=req.auth.id;
+    const sql=`delete from patient_user where patient_id=? and id=?`;
+    db.query(sql,[patient_id,id],(err,results)=>{
+        if(err) return res.sendRes(0,err.toString());
+        if(results.affectedRows!==1) return res.sendRes(0,'删除失败');
+        res.sendRes(1,'删除成功')
+    })
+}
+const getPatientH=(req,res)=>{
+    const {page=1,size=10,name}=req.body;
+    const id=req.auth.id;
+    const offset=(page-1)*size;
+    const limit=size;
+    
+    // 修正SQL语句结构
+    let sql='SELECT * FROM patient_user WHERE id=? LIMIT ?, ?';
+    let params = [id, offset, limit];
+    
+    if(name){
+        sql='SELECT * FROM patient_user WHERE patient_name LIKE ? AND id=? LIMIT ?, ?';
+        params = [`%${name}%`, id, offset, limit];
+    }
+    db.query(sql, params, (err,results)=>{
+        if(err) return res.sendRes(0,err.toString());
+        if(results.length===0) return res.sendRes(0,'查询失败');
+        res.sendRes(1,'查询成功',results)
+    })
+}
+const updatePatientH=(req,res)=>{
+    let {patient_name,patient_address,patient_sex,patient_age,patient_phone,patient_id}=req.body;
+    const id=req.auth.id;
+    const sql=`update patient_user set patient_name=?,patient_address=?,patient_sex=?,patient_age=?,patient_phone=? where patient_id=? and id=?`;
+    db.query(sql,[patient_name,patient_address,patient_sex,patient_age,patient_phone,patient_id,id],(err,results)=>{
+        if(err) return res.sendRes(0,err.toString());
+        if(results.affectedRows!==1) return res.sendRes(0,'更新失败');
+        res.sendRes(1,'更新成功')
+    })
+}
 
 module.exports={
-    addPatientH
+    addPatientH,
+    deletePatientH,
+    getPatientH,
+    updatePatientH,
 }

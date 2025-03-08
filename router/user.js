@@ -1,55 +1,8 @@
 const express = require('express');
 const userHandler = require('../router_handler/user');
-const { update_user_schema, update_pwd_schema } = require('../schema/user');
+const { update_user_schema, update_pwd_schema,login_schema } = require('../schema/user');
 const router = express.Router();
 const expressjoi = require('@escook/express-joi');
-const { login_schema } = require('../schema/user');
-const { checkRole } = require('../app');
-
-/**
- * @swagger
- * /user/createUser:
- *   post:
- *     summary: 创建一个医生
- *     tags:
- *       - 用户管理
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *                 format: alphanumeric
- *                 minLength: 2
- *                 maxLength: 10
- *                 example: "doctor123"
- *               password:
- *                 type: string
- *                 example: "password123"
- *               name:
- *                 type: string
- *                 example: "John Doe"
- *               email:
- *                 type: string
- *                 format: email
- *                 example: "john.doe@example.com"
- *               phone:
- *                 type: string
-
- *                 example: "13812345678"
- *     responses:
- *       '200':
- *         description: 成功创建医生
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- */
-router.post('/createUser', expressjoi(login_schema), checkRole(1), userHandler.createUser);
-
 /**
  * @swagger
  * /user/login:
@@ -78,8 +31,7 @@ router.post('/createUser', expressjoi(login_schema), checkRole(1), userHandler.c
  *         description: 登录成功
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserInfo'
+ *         
  */
 router.post('/login', expressjoi(login_schema), userHandler.login);
 
@@ -95,8 +47,7 @@ router.post('/login', expressjoi(login_schema), userHandler.login);
  *         description: 成功获取用户信息
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/UserInfo'
+ *             
  */
 router.get('/getUserinfo', userHandler.getUserInfo);
 
@@ -136,8 +87,7 @@ router.get('/getUserinfo', userHandler.getUserInfo);
  *         description: 成功更新用户信息
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *            
  */
 router.post('/updateUser', expressjoi(update_user_schema), userHandler.updateUser);
 

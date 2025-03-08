@@ -19,9 +19,9 @@ const options = {
     definition: {
       openapi: '3.0.0',
       info: {
-        title: 'Express API with Swagger',
+        title: '服创 API',
         version: '1.0.0',
-        description: 'This is a sample API',
+        description: '服创 API',
       },
       servers: [
         {
@@ -56,7 +56,10 @@ app.use(express.urlencoded({extended:false}))
 app.use(express.json())
 
   
-
+app.use((req, res, next) => {
+  req.body = req.body || {};  // 初始化空对象
+  next();
+});
 
 //权限验证
 exports.checkRole = (role) => {
@@ -84,10 +87,11 @@ app.use((req,res,next)=>{
       message
     });
   }; 
+  if(token){
   jwt.verify(token.replace('Bearer ',''),config.jwtSecretKey,(err,decode)=>{
       if(err) return res.sendRes(0,err.toString())
       req.auth=decode
-  })
+  })}
   next()
 })
 
@@ -95,10 +99,14 @@ app.use((req,res,next)=>{
 
 //导入注册路由模块
 const userRouter=require('./router/user')
-const eye_imgRouter=require('./router/eye_img')
+const eye_imgRouter=require('./router/eye')
 const patientRouter=require('./router/patient')
+const manageRouter=require('./router/manage')
+const recordRouter=require('./router/medical_record')
+app.use('/record',recordRouter)
 app.use('/user',userRouter)
-app.use('/eyeImg',eye_imgRouter)
+app.use('/manage',manageRouter)
+app.use('/eye',eye_imgRouter)
 app.use('/patient',patientRouter)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 //JWT令牌认证
@@ -137,7 +145,7 @@ app.use((err,req,res,next)=>{
         return res.status(403).json({ error: '禁止访问' });
     }
     // 其他错误
-    return res.status(500).json({ error: err.toString() });
+    return res.status(500).json({ error: err.toString()+'未知错误' });
 })
 app.listen(80,()=>{
     console.log('sever running at http://127.0.0.1:80')

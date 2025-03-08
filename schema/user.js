@@ -13,7 +13,6 @@ const password=joi
 .pattern(/^\S{6,12}$/)
 .required()
 
-const id=joi.number().integer().min(1).required()
 const name=joi.string()
 const email=joi.string().email()
 const phone=joi.string().pattern(/^1[3-9]\d{9}$/)

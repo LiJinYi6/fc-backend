@@ -1,10 +1,7 @@
 const express=require('express');
 const router=express.Router();
-const imgHandle=require('../router_handler/eye_img')
-const expressJoi=require('@escook/express-joi')
+const imgHandle=require('../router_handler/eye')
 const {upload}=require('../utils/uploadImg')
-const {img_deleteDuzon_schema, img_delete_schema,img_upload_schema}=require('../schema/eye_img')
-
 /**
  * @swagger
  * /eyeImg/uploadImg:
@@ -25,7 +22,10 @@ const {img_deleteDuzon_schema, img_delete_schema,img_upload_schema}=require('../
  *       500:
  *         description: 上传失败
  */
-router.post('/uploadImg', upload.single('file'), imgHandle.uploadH);
+router.post('/uploadImg/:patient_id', upload.fields([ // 替换原来的单文件处理
+    { name: 'left_eye', maxCount: 1 }, 
+    { name: 'right_eye', maxCount: 1 }
+  ]), imgHandle.uploadH);
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.post('/uploadImg', upload.single('file'), imgHandle.uploadH);
  *       500:
  *         description: 上传失败
  */
-router.post('/uploadDuzenImg', upload.array('files', 12), imgHandle.uploadDuzenH);
+// router.post('/uploadDuzenImg', upload.array('files', 12), imgHandle.uploadDuzenH);
 
 /**
  * @swagger
@@ -63,7 +63,7 @@ router.post('/uploadDuzenImg', upload.array('files', 12), imgHandle.uploadDuzenH
  *       500:
  *         description: 获取失败
  */
-router.get('/getImg', imgHandle.getImgH);
+// router.get('/getImg', imgHandle.getImgH);
 
 /**
  * @swagger
@@ -95,7 +95,7 @@ router.get('/getImg', imgHandle.getImgH);
  *       500:
  *         description: 删除失败
  */
-router.delete('/deleteImg', expressJoi(img_delete_schema), imgHandle.deleteImgH);
+// router.delete('/deleteImg', expressJoi(img_delete_schema), imgHandle.deleteImgH);
 
 /**
  * @swagger
@@ -129,7 +129,7 @@ router.delete('/deleteImg', expressJoi(img_delete_schema), imgHandle.deleteImgH)
  *       500:
  *         description: 删除失败
  */
-router.delete('/deleteDuzenImg', expressJoi(img_deleteDuzon_schema), imgHandle.deleteDuzenImgH);
+// router.delete('/deleteDuzenImg', expressJoi(img_deleteDuzon_schema), imgHandle.deleteDuzenImgH);
 
 
 // router.post('/updateImg',imgHandle.updateImgH)

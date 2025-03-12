@@ -32,7 +32,7 @@ const login=(req,res)=>{
             return res.sendRes(1,'登陆成功',
                 {token:'Bearer '+token})
         }else{
-            //如果密码不一致，返回登录失败信息
+            //如果密码不一致，返回登录失败信息 
             return res.sendRes(0,'登陆失败,密码错误')
         }
     })
@@ -44,7 +44,7 @@ function getUserInfo(req,res){
     db.query(sql,req.auth.id,(err,results)=>{
         if(err) return res.sendRes(0,err)
         if(results.length!=1)return res.sendRes(0,'获取用户信息失败')
-        res.sendRes(1,'获取成功',results[0])
+        return res.sendRes(1,'获取成功',results[0])
     })
    
 }
@@ -54,7 +54,7 @@ const updateUser=(req,res)=>{
     db.query(sql,[req.body.name,req.body.sex,req.body.email,req.body.phone,req.body.address,req.auth.id],(err,results)=>{
         if(err)return res.sendRes(0,err)
         if(results.affectedRows!==1) return res.sendRes(0,'更新用户的基本信息失败,检查id是否正确')
-        res.sendRes(1,'更新用户信息成功')
+        return res.sendRes(1,'更新用户信息成功')
     })
 
 }
@@ -80,12 +80,12 @@ const updatePwd=(req,res)=>{
                 // 如果更新结果受影响的行数小于1，返回更新失败的信息
                 if(resultss.affectedRows<1) return res.sendRes(0,'更新失败')
                 // 返回更新成功的信息
-                res.sendRes(1,'更新成功')
+                return res.sendRes(1,'更新成功')
             })
         }
         // 如果旧密码与数据库中的密码不匹配，返回旧密码错误的错误信息
         else
-        res.sendRes(0,'旧密码错误,请重试')
+        return res.sendRes(0,'旧密码错误,请重试')
     })
 }
 

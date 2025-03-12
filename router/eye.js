@@ -1,7 +1,8 @@
 const express=require('express');
 const router=express.Router();
 const imgHandle=require('../router_handler/eye')
-const {upload}=require('../utils/uploadImg')
+const {upload}=require('../utils/uploadImg');
+const { getRecordsH } = require('../router_handler/medical_record');
 /**
  * @swagger
  * /eyeImg/uploadImg:
@@ -26,7 +27,7 @@ router.post('/uploadImg/:patient_id', upload.fields([ // 替换原来的单文�
     { name: 'left_eye', maxCount: 1 }, 
     { name: 'right_eye', maxCount: 1 }
   ]), imgHandle.uploadH);
-
+router.get('/getResult/:record_id',imgHandle.getResultH)
 /**
  * @swagger
  * /eyeImg/uploadDuzenImg:

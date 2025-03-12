@@ -3,6 +3,7 @@ const db= require('../db/index');
 const {v4:uuidv4}=require('uuid')
 const path=require('path')
 const fs=require('fs');
+const { token } = require('morgan');
 // 初始化上传
 const uploadH=(req,res)=>{
     let patient_id=req.params.patient_id;
@@ -28,7 +29,7 @@ const uploadH=(req,res)=>{
                     let rightEyePath=path.join(__dirname,'../public/uploads',right_eye)
                     let leftEyeBase=fs.readFileSync(leftEyePath).toString('base64')
                     let rightEyeBase=fs.readFileSync(rightEyePath).toString('base64')
-                    res.sendRes(1,'上传成功',{
+                    return res.sendRes(1,'上传成功',{
                         record_id:record_id,
                         left_url:`data:image/png;base64,${leftEyeBase}`,
                         right_url:`data:image/png;base64,${rightEyeBase}`
@@ -38,7 +39,29 @@ const uploadH=(req,res)=>{
         })
         }
 }
-
+const getResultH=(req,res)=>{
+    const record_id=req.params.record_id;
+    const sql='SELECT * FROM medical_record WHERE record_id=?'
+    db.query(sql,record_id,(err,result)=>{
+        if(err)return res.sendRes(0,err.toString())
+        else if(result.length!==1)return res.sendRes(0,'识别失败，检查图片是否上传成功')
+        let leftEyePath=path.join(__dirname,'../public/uploads',result[0].left_eye)
+        let rightEyePath=path.join(__dirname,'../public/uploads',result[0].right_eye)
+        //处理将图片传递给大模型并拿到返回数据
+        res.sendRes(1,'识别成功',{
+            result:'还没接入大模型'
+        })
+    })
+}
+module.exports={
+    uploadH,
+    getResultH
+    
+    // getImgH,
+    // deleteImgH,
+    // deleteDuzenImgH ,
+    // uploadDuzenH 
+}
 // const uploadDuzenH = (req, res,err) => {
 //     let id = req.auth.id;
 //     if (req.files.length === 0) {
@@ -144,14 +167,3 @@ const uploadH=(req,res)=>{
 //         }
 //     });
 // }
-
-
-
-
-module.exports={
-    uploadH,
-    // getImgH,
-    // deleteImgH,
-    // deleteDuzenImgH ,
-    // uploadDuzenH 
-}

@@ -24,7 +24,7 @@ const fillRecordH = (req, res) => {
             if (results.affectedRows !== 1) {
                 return res.sendRes(0, '记录不存在或填充失败');
             }
-            res.sendRes(1, '记录填充成功');
+          return  res.sendRes(1, '记录填充成功');
         })
 }
 
@@ -59,7 +59,7 @@ const getRecordsH = (req, res) => {
         db.query(countSql, (countErr, countResult)=>{
             if (countErr) return res.sendRes(0, countErr.toString());
             const total = countResult[0].total;
-            res.sendRes(1,'查询成功',{
+           return res.sendRes(1,'查询成功',{
                 total,
                 recordList,
             })
@@ -100,7 +100,7 @@ const deleteRecordH=(req,res)=>{
         if (result.affectedRows!== 1) {
             return res.sendRes(0, '删除失败');
         }
-        res.sendRes(1, '记录删除成功');
+        return res.sendRes(1, '记录删除成功');
     })
 
     
@@ -156,7 +156,7 @@ const updateRecordH=(req,res)=>{
                                 console.error(`success deleting file ${result1[0].left_eye}: ${err}`);
                             }})}
                 }
-                res.sendRes(1,'更新成功')
+                return res.sendRes(1,'更新成功')
             })
     })
 }

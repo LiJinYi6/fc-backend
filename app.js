@@ -8,31 +8,10 @@ const fs = require('fs');
 //静态资源
 app.use(express.static('./public'))
 
-
 //日志文件
 const morgan = require('morgan');
 const path = require('path');
-//swagger
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-const options = {
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: '服创 API',
-        version: '1.0.0',
-        description: '服创 API',
-      },
-      servers: [
-        {
-          url: 'http://localhost:80',
-        },
-      ],
-    },
-    apis: [`./router/*.js`], // 传入你的路由文件
-  };
-  
-const specs = swaggerJsdoc(options);
+
 
 //解码
 const jwt = require('jsonwebtoken');
@@ -68,15 +47,25 @@ exports.checkRole = (role) => {
         jwt.verify(token.replace('Bearer ',''),config.jwtSecretKey,(err,decode)=>{
             if(err) return res.sendRes(0,err.toString())
             let id=decode.id
-            console.log(id)
             db.query('select type from user_info where id=?',id,(err2,results)=>{
                 if(err2) return res.sendRes(0,err2.toString())
                 if(results[0].type!==role) return res.sendRes(0,'身份认证失败')
+                next();
             })
         })
-      next();
     };
 };
+
+//JWT令牌认证
+const expressJwt=require('express-jwt')
+//定义一个解析token的中间件
+const config=require('./config')
+app.use(
+    expressJwt.expressjwt
+    ({secret:config.jwtSecretKey,algorithms:['HS256']})
+    .unless({path:['/user/login']})
+)
+
 //对于send的封装中间件
 app.use((req,res,next)=>{
   const token=req.headers.authorization
@@ -86,12 +75,15 @@ app.use((req,res,next)=>{
       data,
       message
     });
-  }; 
-  if(token){
-  jwt.verify(token.replace('Bearer ',''),config.jwtSecretKey,(err,decode)=>{
-      if(err) return res.sendRes(0,err.toString())
-      req.auth=decode
-  })}
+  };
+  if(req.originalUrl!='/user/login')
+  {
+    if(token){
+      jwt.verify(token.replace('Bearer ',''),config.jwtSecretKey,(err,decode)=>{
+          if(err) return res.sendRes(0,err.toString())
+          req.auth=decode
+      })}
+  }
   next()
 })
 
@@ -103,21 +95,13 @@ const eye_imgRouter=require('./router/eye')
 const patientRouter=require('./router/patient')
 const manageRouter=require('./router/manage')
 const recordRouter=require('./router/medical_record')
+const aiRouter=require('./router/ai')
 app.use('/record',recordRouter)
 app.use('/user',userRouter)
 app.use('/manage',manageRouter)
 app.use('/eye',eye_imgRouter)
 app.use('/patient',patientRouter)
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-//JWT令牌认证
-const expressJwt=require('express-jwt')
-//定义一个解析token的中间件
-const config=require('./config')
-app.use(
-    expressJwt.expressjwt
-    ({secret:config.jwtSecretKey,algorithms:['HS256']})
-    .unless({path:['/user/login','/api-docs']})
-)
+app.use('/ai',aiRouter)
 
 //定义错误级别的中间件
 app.use((err,req,res,next)=>{

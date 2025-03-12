@@ -1,5 +1,6 @@
 const { checkRole } = require('../app');
 const { login_schema } = require('../schema/user');
+const {getDoctor_schema,updateDoctor_schema}=require('../schema/manage');
 const express = require('express');
 const router = express.Router();
 const expressjoi = require('@escook/express-joi');
@@ -47,6 +48,9 @@ const manageHandler = require('../router_handler/manage');
  *               $ref: '#/components/schemas/User'
  */
 router.post('/createUser', expressjoi(login_schema), checkRole(1), manageHandler.createUser);
+router.post('/updateDoctor',expressjoi(updateDoctor_schema), checkRole(1), manageHandler.updateDoctor);
+router.get('/getDoctor',expressjoi(getDoctor_schema), checkRole(1),manageHandler.getDoctor);
+router.delete('/deleteDoctor/:id',checkRole(1), manageHandler.deleteDoctor);
 
 
 module.exports = router;

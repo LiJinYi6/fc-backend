@@ -31,6 +31,13 @@ const getDoctor=(req,res)=>{
     const {page=1,size=10,name}=req.body;
     const offset=(page-1)*size;
     const limit=size;
+    //查询所有医生总数
+    let sqlCount='SELECT COUNT(*) AS total FROM user_info';
+    let totals=0;
+    db.query(sqlCount,(err,results)=>{
+        if(err) return res.sendRes(0,err.toString());
+        if(results.length===0) return res.sendRes(0,'总数查询失败');
+         totals=results[0].total;   })
     
     // 修正SQL语句结构
     let sql='SELECT * FROM user_info  LIMIT ?, ?';
@@ -43,7 +50,10 @@ const getDoctor=(req,res)=>{
     db.query(sql, params, (err,results)=>{
         if(err) return res.sendRes(0,err.toString());
         if(results.length===0) return res.sendRes(1,'空');
-        return res.sendRes(1,'查询成功',results)
+        return res.sendRes(1,'查询成功',{
+            results,
+            totals}
+        )
     })
 }
 const updateDoctor=(req,res)=>{

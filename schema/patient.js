@@ -13,7 +13,8 @@ exports.updatePatientSchema=joi.object({
     patient_address:joi.string(),
     patient_sex:joi.number(),
     patient_phone:joi.string(),
-    patient_id:joi.string().required()
+    patient_id:joi.string().required(),
+    cure_advice:joi.string(),
 })
 
 exports.pageSchema=joi.object({

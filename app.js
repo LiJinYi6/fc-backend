@@ -96,12 +96,14 @@ const patientRouter=require('./router/patient')
 const manageRouter=require('./router/manage')
 const recordRouter=require('./router/medical_record')
 const aiRouter=require('./router/ai')
+const echartsRouter=require('./router/echarts')
 app.use('/record',recordRouter)
 app.use('/user',userRouter)
 app.use('/manage',manageRouter)
 app.use('/eye',eye_imgRouter)
 app.use('/patient',patientRouter)
 app.use('/ai',aiRouter)
+app.use('/echarts',echartsRouter)
 
 //定义错误级别的中间件
 app.use((err,req,res,next)=>{

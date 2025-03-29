@@ -46,17 +46,35 @@ const getRecordsH = (req, res) => {
         let recordList=records.map(item=>{
             const leftPath=path.join(__dirname,'../public/uploads',item.left_eye)
             const rightPath=path.join(__dirname,'../public/uploads',item.right_eye)
-            const leftBase=fs.readFileSync(leftPath).toString('base64')
-            const rightBase=fs.readFileSync(rightPath).toString('base64')
+            let combinePath=null
+            if(item.combined_image)
+            combinePath=path.join(__dirname,'../public/uploads',item.combined_image)
+            let leftBase=null
+            let rightBase=null
+            let combinedBase=null
+                if(!fs.existsSync(leftPath)){
+                    leftBase=null
+                }else if(!fs.existsSync(rightPath)){
+                    rightBase=null
+                }
+                else if(!fs.existsSync(combinePath)){
+                    combinedBase=null
+                }
+                else{
+                    leftBase=fs.readFileSync(leftPath).toString('base64')
+                    rightBase=fs.readFileSync(rightPath).toString('base64')
+                    combinedBase=fs.readFileSync(combinePath).toString('base64')
+                }
             return {
                 ...item,
-                left_eye:`data:image/png;base64,${leftBase}`,
-                right_eye:`data:image/png;base64,${rightBase}`
+                left_eye:leftBase?`data:image/png;base64,${leftBase}`:null,
+                right_eye:rightBase?`data:image/png;base64,${rightBase}`:null,
+                combined_image:combinedBase?`data:image/png;base64,${combinedBase}`:null
             }
             
         })
-        const countSql = `SELECT COUNT(*) AS total FROM medical_record`;
-        db.query(countSql, (countErr, countResult)=>{
+        const countSql = `SELECT COUNT(*) AS total FROM medical_record where patient_id=?`;
+        db.query(countSql,[patient_id], (countErr, countResult)=>{
             if (countErr) return res.sendRes(0, countErr.toString());
             const total = countResult[0].total;
            return res.sendRes(1,'查询成功',{

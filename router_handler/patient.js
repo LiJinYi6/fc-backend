@@ -1,6 +1,7 @@
 const db= require('../db/index');
 const {v4:uuidv4}=require('uuid');
 const { updatePatientSchema } = require('../schema/patient');
+const { result } = require('@hapi/joi/lib/base');
 
 const addPatientH=(req,res)=>{
     let id=req.auth.id
@@ -35,10 +36,7 @@ const getPatientH=(req,res)=>{
         if(err) return res.sendRes(0,err.toString());
         if(results.length===0) return res.sendRes(0,'总数查询失败');
          totals=results[0].total;   
-        })
-    
-    // 修正SQL语句结构
-    let sql='SELECT * FROM patient_user WHERE id=? LIMIT ?, ?';
+         let sql='SELECT * FROM patient_user WHERE id=? LIMIT ?, ?';
     let params = [id, offset, limit];
     
     if(name){
@@ -53,15 +51,24 @@ const getPatientH=(req,res)=>{
             totals
         })
     })
+        })
+    
+    // 修正SQL语句结构
+   
 }
 const updatePatientH=(req,res)=>{
     let {patient_name,patient_address,patient_sex,patient_age,patient_phone,patient_id,cure_advice}=req.body;
     const id=req.auth.id;
     const sql=`update patient_user set patient_name=?,patient_address=?,patient_sex=?,patient_age=?,patient_phone=?,cure_advice=? where patient_id=? and id=?`;
-    db.query(sql,[patient_name,patient_address,patient_sex,patient_age,patient_phone,cure_advice,patient_id,id],(err,results)=>{
+    const querySql='select * from patient_user where patient_id=? and id=?';
+    db.query(querySql,[patient_id,id],(err,results)=>{
         if(err) return res.sendRes(0,err.toString());
-        if(results.affectedRows!==1) return res.sendRes(0,'更新失败');
-        res.sendRes(1,'更新成功')
+        if(results.length===0) return res.sendRes(0,'患者不存在');
+        db.query(sql,[patient_name,patient_address,patient_sex,patient_age,patient_phone,cure_advice,patient_id,id],(err,results)=>{
+            if(err) return res.sendRes(0,err.toString());
+            if(results.affectedRows!==1) return res.sendRes(0,'更新失败',results.affectedRows);
+            res.sendRes(1,'更新成功')
+        })
     })
 }
 

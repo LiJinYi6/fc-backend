@@ -27,7 +27,7 @@ router.post('/uploadImg/:patient_id', upload.fields([ // 替换原来的单文�
     { name: 'left_eye', maxCount: 1 }, 
     { name: 'right_eye', maxCount: 1 }
   ]), imgHandle.uploadH);
-router.get('/getResult/:record_id',imgHandle.getResultH)
+router.get('/getResult',imgHandle.getResultH)
 /**
  * @swagger
  * /eyeImg/uploadDuzenImg:

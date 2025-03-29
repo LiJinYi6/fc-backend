@@ -2,8 +2,90 @@
 const db= require('../db/index');
 const {v4:uuidv4}=require('uuid')
 const path=require('path')
+const formatCurrentTime=require('../utils/getDate')
+
 const fs=require('fs');
+
 const { token } = require('morgan');
+const BINCLASS={
+    "N":'正常',
+    "D":'糖尿病',
+    "G":'青光眼',
+    "C":'白内障',
+    "A":'AMD',
+    "H":'高血压',
+    "M":'近视',
+    "O":'其他疾病/异常',
+}
+// 在文件顶部添加依赖
+const axios = require('axios');
+const FormData = require('form-data');
+const keys = require('@hapi/joi/lib/types/keys');
+const { result } = require('@hapi/joi/lib/base');
+
+// 新增路由处理方法
+const getPredict=async (req,res,pairs)=>{
+    try {
+        const recordList=req.body.recordList
+        const form = new FormData();
+        pairs.forEach((pair, index) => {
+            form.append('files', fs.createReadStream(pair.left), {
+                filename: `pair${index}_left.jpg`,
+                contentType: 'image/jpeg'
+            });
+            form.append('files', fs.createReadStream(pair.right), {
+                filename: `pair${index}_right.jpg`,
+                contentType: 'image/jpeg'
+            });
+        });
+        // 发送请求
+        const response = await axios.post('http://localhost:6006/predict', form, {
+            headers: form.getHeaders(),
+            timeout: 30000
+        });     // 处理响应数据
+        const getProbable=(predictions)=>{
+            let maxProbable=0;
+            let maxKey=null;
+            for (const [key, value] of Object.entries(predictions)) {
+                if (value > maxProbable) {
+                    maxProbable = value;
+                    maxKey = key;
+                }
+            }
+            return  [BINCLASS[maxKey], maxProbable];
+        }
+        const results = response.data.map(result => ({
+            filenames: result.filenames,
+            predictions: Object.entries(result.predictions)
+            .map(([key, value]) => [BINCLASS[key], value]),
+            confidence_analysis: result.confidence_analysis,
+            mostProbable:getProbable(result.predictions),
+            combined_image:result.combined_image
+        }));
+        res.sendRes(1, '预测成功', { 
+            results
+        });
+        if(recordList.length!==results.length)return console.log("数据不匹配")
+        results.forEach((item,index)=>{
+            const combine_name = `combined_${Date.now()}_${index}.png`;
+            const savePath = path.join(__dirname, '../public/uploads', combine_name);
+            const base64Data = item.combined_image.replace(/^data:image\/\w+;base64,/, "");
+            fs.writeFileSync(savePath, base64Data, 'base64');
+            //更新表
+            const updateSql="UPDATE medical_record SET combined_image=?, result=? WHERE record_id=?";
+            console.log("record_id",recordList[index])
+            db.query(updateSql,[combine_name,item.mostProbable[0],recordList[index]],(err,result)=>{
+                if(err)console.log(err.toString())
+                if(result.affectedRows===0)console.log("保存失败")
+                console.log("保存成功")
+            })
+        })
+    } catch (error) {
+        console.error('检测失败:', error);
+        const message = error.response?.data || error.message;
+        return res.sendRes(0, `检测失败: ${message}`);
+    }
+}
 // 初始化上传
 const uploadH=(req,res)=>{
     let patient_id=req.params.patient_id;
@@ -17,8 +99,9 @@ const uploadH=(req,res)=>{
             const left_eye = leftEyeImg.filename; 
             const right_eye = rightEyeImg.filename;
             const record_id=uuidv4()
-            const sql = 'INSERT INTO medical_record (left_eye,right_eye,record_id,patient_id) VALUES (?,?,?,?)';
-            db.query(sql, [left_eye,right_eye,record_id,patient_id],(err2,result)=>{
+           
+            const sql = 'INSERT INTO medical_record (left_eye,right_eye,record_id,record_time,patient_id) VALUES (?,?,?,?,?)';
+            db.query(sql, [left_eye,right_eye,record_id,formatCurrentTime(),patient_id],(err2,result)=>{
                 if(err2){
                     return res.sendRes(0,err2.toString())
                 }
@@ -33,34 +116,41 @@ const uploadH=(req,res)=>{
                         record_id:record_id,
                         left_url:`data:image/png;base64,${leftEyeBase}`,
                         right_url:`data:image/png;base64,${rightEyeBase}`
-                        //还要返回检测结果
                     })
                 }
         })
         }
 }
 const getResultH=(req,res)=>{
-    const record_id=req.params.record_id;
-    const sql='SELECT * FROM medical_record WHERE record_id=?'
-    db.query(sql,record_id,(err,result)=>{
+    const recordList=req.body.recordList;
+    console.log('recordList',recordList)
+    const sql='SELECT * FROM medical_record WHERE record_id IN (?)'
+    db.query(sql,[recordList],(err,result)=>{
         if(err)return res.sendRes(0,err.toString())
-        else if(result.length!==1)return res.sendRes(0,'识别失败，检查图片是否上传成功')
-        let leftEyePath=path.join(__dirname,'../public/uploads',result[0].left_eye)
-        let rightEyePath=path.join(__dirname,'../public/uploads',result[0].right_eye)
-        //处理将图片传递给大模型并拿到返回数据
-        res.sendRes(1,'识别成功',{
-            result:'还没接入大模型'
+        else if(result.length<=0)return res.sendRes(0,'识别失败，检查图片是否全部上传成功')
+        const pairs=[]
+        console.log('result',result)
+        result.forEach(item=>{
+            const leftPath=path.join(__dirname,'../public/uploads',item.left_eye)
+            const rightPath=path.join(__dirname,'../public/uploads',item.right_eye)
+            if(!fs.existsSync(leftPath)){
+                   res.sendRes(0,'左眼图片不存在，请上传')
+            }else if(!fs.existsSync(rightPath)){
+                   res.sendRes(0,'右眼图片不存在，请上传')
+            }else{
+                pairs.push({left:leftPath,right:rightPath})
+            }
         })
+        console.log(
+            'pairs',pairs
+        )
+        getPredict(req,res,pairs)
     })
 }
 module.exports={
     uploadH,
-    getResultH
-    
-    // getImgH,
-    // deleteImgH,
-    // deleteDuzenImgH ,
-    // uploadDuzenH 
+    getResultH,
+   
 }
 // const uploadDuzenH = (req, res,err) => {
 //     let id = req.auth.id;
@@ -165,5 +255,4 @@ module.exports={
 //                 res.sendRes(1, '删除成功');
 //             }
 //         }
-//     });
-// }
+//     });// }

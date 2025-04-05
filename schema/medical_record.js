@@ -16,7 +16,12 @@ const updateRecordSchema=joi.object({
     cost:joi.string(),
     check_items:joi.string(),
 })
+const giveDozenResultSchema=joi.object([{
+    record_id:joi.string().required(),
+    result:joi.string().required()
+}])
 module.exports={
     fillRecordSchema,
-    pageSchema
+    pageSchema,
+    giveDozenResultSchema
 }

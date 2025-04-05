@@ -50,13 +50,46 @@ function getUserInfo(req,res){
 }
 //更新基本信息
 const updateUser=(req,res)=>{
-    const sql="update user_info set name=? , sex=? ,email=? ,phone=?, address=? where id=?"
-    db.query(sql,[req.body.name,req.body.sex,req.body.email,req.body.phone,req.body.address,req.auth.id],(err,results)=>{
-        if(err)return res.sendRes(0,err)
-        if(results.affectedRows!==1) return res.sendRes(0,'更新用户的基本信息失败,检查id是否正确')
-        return res.sendRes(1,'更新用户信息成功')
-    })
+    // 先查询当前用户信息
+    const querySql = 'SELECT * FROM user_info WHERE id = ?';
+    db.query(querySql, [req.auth.id], (err, results) => {
+        if(err) return res.sendRes(0, err.toString());
+        if(results.length !== 1) return res.sendRes(0, '用户不存在');
+        
+        const currentUser = results[0];
+        
+        // 构建更新参数（使用传入值或当前值）
+        const updateParams = {
+            name: req.body.name ?? currentUser.name,
+            sex: req.body.sex ?? currentUser.sex,
+            email: req.body.email ?? currentUser.email,
+            phone: req.body.phone ?? currentUser.phone,
+            address: req.body.address ?? currentUser.address
+        };
 
+        const sql = `
+            UPDATE user_info 
+            SET name = ?, 
+                sex = ?, 
+                email = ?, 
+                phone = ?, 
+                address = ? 
+            WHERE id = ?
+        `;
+
+        db.query(sql, [
+            updateParams.name,
+            updateParams.sex,
+            updateParams.email,
+            updateParams.phone,
+            updateParams.address,
+            req.auth.id
+        ], (err, results) => {
+            if(err) return res.sendRes(0, err.toString());
+            if(results.affectedRows !== 1) return res.sendRes(0, '更新失败');
+            return res.sendRes(1, '更新成功');
+        });
+    });
 }
 // 定义更新密码的函数
 const updatePwd=(req,res)=>{

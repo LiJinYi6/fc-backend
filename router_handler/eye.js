@@ -39,9 +39,9 @@ const getPredict=async (req,res,pairs)=>{
             });
         });
         // 发送请求
-        const response = await axios.post('http://localhost:6006/predict', form, {
+        const response = await axios.post('http:127.0.0.1:6006/predict', form, {
             headers: form.getHeaders(),
-            timeout: 30000
+            timeout: 300000
         });     // 处理响应数据
         const getProbable=(predictions)=>{
             let maxProbable=0;

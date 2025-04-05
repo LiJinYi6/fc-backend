@@ -1,6 +1,28 @@
 const db= require('../db/index');
 const {v4:uuidv4}=require('uuid');
 const bcryptjs=require('bcryptjs')
+const getTotals=(req,res)=>{
+    const sql='select count(*) as doctorTotal from user_info';
+    db.query(sql,(err,results1)=>{
+        if(err) return res.sendRes(0,err.toString());
+        if(results1.length!==1) return res.sendRes(0,'查询失败');
+        const sql='select count(*) as patientTotal from patient_user';
+        db.query(sql,(err,results2)=>{
+            if(err) return res.sendRes(0,err.toString());
+            if(results2.length!==1) return res.sendRes(0,'查询失败');
+            const sql='select count(*) as recordTotal from medical_record';
+            db.query(sql,(err,results3)=>{
+                if(err) return res.sendRes(0,err.toString());
+                if(results3.length!==1) return res.sendRes(0,'查询失败');
+                res.sendRes(1,'查询成功',{
+                    doctorTotal:results1[0].doctorTotal,
+                    patientTotal:results2[0].patientTotal,
+                    recordTotal:results3[0].recordTotal,
+                })
+            })
+    })
+})
+}
 const createUser=(req,res)=>{
     //获取用户信息
     const userInfo=req.body
@@ -78,5 +100,6 @@ module.exports={
     createUser,
     updateDoctor,
     deleteDoctor,
-    getDoctor
+    getDoctor,
+    getTotals
 }

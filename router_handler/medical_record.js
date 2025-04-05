@@ -4,33 +4,92 @@ const path=require("path")
 const fs=require("fs")
 const e = require('express')
 
-const fillRecordH = (req, res) => {
-    const { record_id, advice, cost, cure_state, check_items } = req.body
-    // 构建更新SQL（根据record_id更新其他字段）
-    const sql = `
-        UPDATE medical_record 
-        SET advice = ?, 
-            cost = ?, 
-            cure_state = ?, 
-            check_items = ?,
-            record_time=?
-        WHERE record_id = ?
-    `;
+const giveDozenResultH = (req, res) => {
+    const recordUpdates = req.body; // 重命名变量更清晰
+    if (!Array.isArray(recordUpdates)) {
+        return res.sendRes(0, '请求体格式错误，需要数组格式');
+    }
+    // 创建Promise数组用于批量处理
+    const updatePromises = recordUpdates.map(({ record_id, result }) => {
+        return new Promise((resolve, reject) => {
+            const sql = `UPDATE medical_record 
+                        SET result = ?, 
+                            record_time = ? 
+                        WHERE record_id = ?`;
+            db.query(sql, [result, formatCurrentTime(), record_id], (err, results) => {
+                err ? reject({ record_id, error: err }) : resolve(results);
+            });
+        });
+    });
 
-    db.query(sql, 
-        [advice, cost, cure_state, check_items,formatCurrentTime(),record_id],
-        (err, results) => {
-            if (err) return res.sendRes(0, '填充失败: ' + err.message);
-            if (results.affectedRows !== 1) {
-                return res.sendRes(0, '记录不存在或填充失败');
+    // 并行执行所有更新
+    Promise.all(updatePromises)
+        .then(results => {
+            const failedUpdates = results.filter(r => r.affectedRows !== 1);
+            if (failedUpdates.length > 0) {
+                return res.sendRes(0, `部分更新失败，影响记录数：${failedUpdates.length}`);
             }
-          return  res.sendRes(1, '记录填充成功');
+            res.sendRes(1, `成功更新${results.length}条记录`);
         })
+        .catch(error => {
+            res.sendRes(0, `记录ID ${error.record_id} 更新失败: ${error.error.toString()}`);
+        });
+}
+
+const fillRecordH = (req, res) => {
+    const { record_id, ...updateFields } = req.body;
+    
+    // 查询当前记录值
+    const querySql = `SELECT * FROM medical_record WHERE record_id = ?`;
+    db.query(querySql, [record_id], (queryErr, queryResults) => {
+        if (queryErr) return res.sendRes(0, '查询失败: ' + queryErr.message);
+        if (queryResults.length === 0) return res.sendRes(0, '记录不存在');
+
+        const currentRecord = queryResults[0];
+        
+        // 构建更新参数（使用传入值或当前值）
+        const updateParams = {
+            advice: updateFields.advice ?? currentRecord.advice,
+            cost: updateFields.cost ?? currentRecord.cost,
+            cure_state: updateFields.cure_state ?? currentRecord.cure_state,
+            check_items: updateFields.check_items ?? currentRecord.check_items,
+            result: updateFields.result ?? currentRecord.result,
+            record_time: formatCurrentTime()  // 更新时间始终使用当前时间
+        };
+
+        const sql = `
+            UPDATE medical_record 
+            SET advice = ?,
+                cost = ?,
+                cure_state = ?,
+                check_items = ?,
+                result = ?,
+                record_time = ?
+            WHERE record_id = ?
+        `;
+
+        db.query(sql, [
+            updateParams.advice,
+            updateParams.cost,
+            updateParams.cure_state,
+            updateParams.check_items,
+            updateParams.result,
+            updateParams.record_time,
+            record_id
+        ], (err, results) => {
+            if (err) return res.sendRes(0, '更新失败: ' + err.message);
+            if (results.affectedRows !== 1) return res.sendRes(0, '更新失败');
+            return res.sendRes(1, '记录更新成功');
+        });
+    });
 }
 
 const getRecordsH = (req, res) => {
-    const { page = 1, size = 10 ,patient_id} = req.body;
-    const offset = (page - 1) * size;
+    const { page, size, patient_id } = req.query;
+    // 参数转换优化 ↓
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.max(parseInt(size, 10) || 10, 1);
+    const offset = (pageNum - 1) * pageSize;
     // 分页查询SQL（包含总数统计）
     const dataSql = `
         SELECT *
@@ -38,10 +97,8 @@ const getRecordsH = (req, res) => {
         ORDER BY record_time DESC 
         LIMIT ? OFFSET ?
     `;
-    
-
     // 并行查询数据和总数
-    db.query(dataSql, [patient_id,size, offset], (dataErr, records) => {
+    db.query(dataSql, [patient_id,pageSize, offset], (dataErr, records) => {
         if (dataErr) return res.sendRes(0, dataErr.toString());
         let recordList=records.map(item=>{
             const leftPath=path.join(__dirname,'../public/uploads',item.left_eye)
@@ -185,5 +242,6 @@ module.exports={
     fillRecordH,
     getRecordsH,
     deleteRecordH,
-    updateRecordH
+    updateRecordH,
+    giveDozenResultH
 }

@@ -51,6 +51,7 @@ router.post('/createUser', expressjoi(login_schema), checkRole(1), manageHandler
 router.post('/updateDoctor',expressjoi(updateDoctor_schema), checkRole(1), manageHandler.updateDoctor);
 router.get('/getDoctor',expressjoi(getDoctor_schema), checkRole(1),manageHandler.getDoctor);
 router.delete('/deleteDoctor/:id',checkRole(1), manageHandler.deleteDoctor);
+router.get('/getTotals',checkRole(1), manageHandler.getTotals);
 
 
 module.exports = router;

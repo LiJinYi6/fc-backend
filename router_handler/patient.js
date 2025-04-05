@@ -25,10 +25,13 @@ const deletePatientH=(req,res)=>{
     })
 }
 const getPatientH=(req,res)=>{
-    const {page=1,size=10,name}=req.body;
+    const { page, size, name } = req.query;
+    // 参数转换优化 ↓
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.max(parseInt(size, 10) || 10, 1);
+    const offset = (pageNum - 1) * pageSize;
     const id=req.auth.id;
-    const offset=(page-1)*size;
-    const limit=size;
+    const limit=pageSize;
     //查询病人总数
     let sqlCount='SELECT COUNT(*) AS total FROM patient_user WHERE id=?';
     let totals=0;
@@ -57,16 +60,41 @@ const getPatientH=(req,res)=>{
    
 }
 const updatePatientH=(req,res)=>{
-    let {patient_name,patient_address,patient_sex,patient_age,patient_phone,patient_id,cure_advice}=req.body;
+    // 添加默认值处理
+    let {patient_name, patient_address, patient_sex, patient_age, patient_phone, cure_advice} = req.body;
+    const {patient_id} = req.body;  // 必须参数不解构默认值
     const id=req.auth.id;
-    const sql=`update patient_user set patient_name=?,patient_address=?,patient_sex=?,patient_age=?,patient_phone=?,cure_advice=? where patient_id=? and id=?`;
+    
+    const sql=`update patient_user set 
+        patient_name=COALESCE(?,patient_name),
+        patient_address=COALESCE(?,patient_address),
+        patient_sex=COALESCE(?,patient_sex),
+        patient_age=COALESCE(?,patient_age),
+        patient_phone=COALESCE(?,patient_phone),
+        cure_advice=COALESCE(?,cure_advice) 
+        where patient_id=? and id=?`;
+
     const querySql='select * from patient_user where patient_id=? and id=?';
     db.query(querySql,[patient_id,id],(err,results)=>{
         if(err) return res.sendRes(0,err.toString());
         if(results.length===0) return res.sendRes(0,'患者不存在');
-        db.query(sql,[patient_name,patient_address,patient_sex,patient_age,patient_phone,cure_advice,patient_id,id],(err,results)=>{
+        
+        // 使用现有值作为默认值
+        const current = results[0];
+        const params = [
+            patient_name || current.patient_name,
+            patient_address || current.patient_address,
+            patient_sex || current.patient_sex,
+            patient_age || current.patient_age,
+            patient_phone || current.patient_phone,
+            cure_advice || current.cure_advice,
+            patient_id,
+            id
+        ];
+        
+        db.query(sql,params,(err,results)=>{
             if(err) return res.sendRes(0,err.toString());
-            if(results.affectedRows!==1) return res.sendRes(0,'更新失败',results.affectedRows);
+            if(results.affectedRows!==1) return res.sendRes(0,'更新失败');
             res.sendRes(1,'更新成功')
         })
     })

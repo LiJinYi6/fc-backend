@@ -50,9 +50,12 @@ const createUser=(req,res)=>{
     })
 }
 const getDoctor=(req,res)=>{
-    const {page=1,size=10,name}=req.body;
-    const offset=(page-1)*size;
-    const limit=size;
+    // 从query获取参数 ↓
+    const { page, size, name } = req.query;
+    // 参数转换与校验 ↓
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const pageSize = Math.max(parseInt(size, 10) || 10, 1);
+    const offset = (pageNum - 1) * pageSize;
     //查询所有医生总数
     let sqlCount='SELECT COUNT(*) AS total FROM user_info';
     let totals=0;
@@ -63,11 +66,11 @@ const getDoctor=(req,res)=>{
     
     // 修正SQL语句结构
     let sql='SELECT * FROM user_info  LIMIT ?, ?';
-    let params = [ offset, limit];
+    let params = [ offset, pageSize];
     
     if(name){
         sql='SELECT * FROM patient_user WHERE patient_name LIKE ?  LIMIT ?, ?';
-        params = [`%${name}%`,  offset, limit];
+        params = [`%${name}%`,  offset, pageSize];
     }
     db.query(sql, params, (err,results)=>{
         if(err) return res.sendRes(0,err.toString());

@@ -17,11 +17,15 @@ const addPatientH=(req,res)=>{
 const deletePatientH=(req,res)=>{
     const patient_id=req.params.patient_id;
     const id=req.auth.id;
-    const sql=`delete from patient_user where patient_id=? and id=?`;
-    db.query(sql,[patient_id,id],(err,results)=>{
+    const sql1="delete from medical_record where patient_id=?";
+    db.query(sql1,patient_id,(err,results1)=>{
         if(err) return res.sendRes(0,err.toString());
-        if(results.affectedRows!==1) return res.sendRes(0,'删除失败');
-        res.sendRes(1,'删除成功')
+        const sql=`delete from patient_user where patient_id=? and id=?`;
+        db.query(sql,[patient_id,id],(err,results)=>{
+            if(err) return res.sendRes(0,err.toString());
+            if(results.affectedRows<=0) return res.sendRes(0,'删除失败');
+            res.sendRes(1,'删除成功')
+        })
     })
 }
 const getPatientH=(req,res)=>{
